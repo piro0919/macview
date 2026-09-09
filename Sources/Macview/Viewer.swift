@@ -121,6 +121,11 @@ final class Viewer: NSObject, NSWindowDelegate {
 
     /// Up and down turn the picture, the way they do in qView, so only left and right walk
     /// the folder.
+    /// Whatever asks AppKit to zoom the window gets the same shape the double-click gives.
+    func windowWillUseStandardFrame(_ window: NSWindow, defaultFrame: NSRect) -> NSRect {
+        view.standardFrame(for: window, in: defaultFrame)
+    }
+
     private func handle(_ event: NSEvent) -> Bool {
         switch Int(event.keyCode) {
         case 124, 49:  // right, space

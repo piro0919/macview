@@ -44,7 +44,10 @@ up front, so a long animation costs no more to hold than a still.
 
 The window is fitted to the image once, when it opens, and is then left alone — stepping
 through a folder never moves or reshapes it. Images of a different shape sit centred on the
-ground. The fitted window is held between a fifth and seven tenths of the screen.
+ground. The fitted window is held between a fifth and seven tenths of the screen. Zooming the window —
+a double-click, or Window ▸ Zoom — grows it to the largest rectangle of the picture's own shape
+that the screen holds, never past the picture's own size, so the picture still reaches every
+edge.
 
 These are qView's own defaults (`windowresizemode` 1, 20%, 70%) and its ground colour
 (#212121), matched deliberately. No qView code is used: it is GPL-3.0 and this is not.
@@ -68,8 +71,9 @@ walk the folder.
 | ⌘O | open a file or folder |
 
 Scrolling and pinching zoom around the pointer. Dragging moves the picture while it is larger
-than the window, and moves the window while it is not — there is no title bar to grab.
-Files can also be dropped on the window.
+than the window, and moves the window while it is not — there is no title bar to grab. For the
+same reason a double-click anywhere on the picture, not only along the top, grows the window to
+fill the screen, and a second one puts it back. Files can also be dropped on the window.
 
 ## Icon
 

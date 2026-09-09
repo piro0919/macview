@@ -69,7 +69,7 @@
         "body": "Open a file or folder"
       }
     ],
-    "note": "Scrolling and pinching zoom around the pointer. Dragging moves the picture while it is larger than the window and moves the window while it is not. Files can also be dropped on the window."
+    "note": "Scrolling and pinching zoom around the pointer. Dragging moves the picture while it is larger than the window and moves the window while it is not. A double-click anywhere on the picture grows the window to fill the screen, and a second one puts it back. Files can also be dropped on the window."
   },
   "screens": {
     "window": "The window is the size of the picture, with no frame and no margin"

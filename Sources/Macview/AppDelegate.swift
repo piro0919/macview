@@ -66,6 +66,13 @@ enum MainMenu {
 
         main.addItem(viewItem())
 
+        let windowItem = NSMenuItem()
+        let windowMenu = NSMenu(title: "Window")
+        add(windowMenu, "Minimise", #selector(NSWindow.performMiniaturize(_:)), "m", .command)
+        add(windowMenu, "Zoom", #selector(ImageLayerView.zoomWindow(_:)), "", [])
+        windowItem.submenu = windowMenu
+        main.addItem(windowItem)
+
         return main
     }
 

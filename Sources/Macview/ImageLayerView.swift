@@ -13,6 +13,7 @@ final class ImageLayerView: NSView {
     private var image: CGImage?
     private var transform = ViewTransform()
     private var dragOrigin: CGPoint?
+    private var restoreFrame: NSRect?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -87,6 +88,15 @@ final class ImageLayerView: NSView {
     }
 
     // MARK: - Zoom, turn, flip
+
+    /// The size the picture takes up, in image pixels, the way round it is currently shown.
+    var pictureSize: CGSize? {
+        guard let image else { return nil }
+        return Layout.turnedSize(
+            CGSize(width: image.width, height: image.height),
+            quarterTurns: transform.quarterTurns
+        )
+    }
 
     private var currentScale: CGFloat {
         guard let image else { return 1 }
@@ -167,6 +177,39 @@ final class ImageLayerView: NSView {
     @objc func mirrorImage(_ sender: Any?) { mirror() }
     @objc func flipImage(_ sender: Any?) { flip() }
 
+    /// Grows the window to the largest rectangle of the picture's own shape the screen holds,
+    /// and back again. The size to come back to is kept here: AppKit only remembers one when
+    /// the reader resized the window by hand, and this window sizes itself.
+    @objc func zoomWindow(_ sender: Any?) {
+        guard let window, let screen = window.screen ?? NSScreen.main else { return }
+        let standard = standardFrame(for: window, in: screen.visibleFrame)
+        if let restore = restoreFrame {
+            restoreFrame = nil
+            window.setFrame(restore, display: true, animate: false)
+        } else {
+            guard standard != window.frame else { return }
+            restoreFrame = window.frame
+            window.setFrame(standard, display: true, animate: false)
+        }
+    }
+
+    /// The picture's shape, as large as it fits, never beyond its own size, centred.
+    func standardFrame(for window: NSWindow, in visible: NSRect) -> NSRect {
+        guard let picture = pictureSize, picture.width > 0, picture.height > 0 else { return visible }
+        let limit = window.contentRect(forFrameRect: visible).size
+        let ratio = min(limit.width / picture.width, limit.height / picture.height, 1)
+        let content = NSSize(
+            width: (picture.width * ratio).rounded(),
+            height: (picture.height * ratio).rounded()
+        )
+        var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content))
+        frame.origin = NSPoint(
+            x: (visible.midX - frame.width / 2).rounded(),
+            y: (visible.midY - frame.height / 2).rounded()
+        )
+        return frame
+    }
+
     // MARK: - Events
 
     override func keyDown(with event: NSEvent) {
@@ -191,18 +234,22 @@ final class ImageLayerView: NSView {
     /// while the picture is larger than the window, when dragging moves the picture instead.
     /// AppKit's own background dragging is not used: it decides before the view sees the event,
     /// and it moved the window while the picture was zoomed in.
+    /// Nothing happens on the way down. Moving the window takes over the whole event loop
+    /// until the button comes back up, so starting it here would swallow the second click of
+    /// a double-click.
     override func mouseDown(with event: NSEvent) {
-        guard canPan else {
-            window?.performDrag(with: event)
-            return
-        }
         dragOrigin = convert(event.locationInWindow, from: nil)
     }
 
     /// The drag is measured from where the pointer actually is, not from the event's reported
     /// delta: a delta is not filled in by every kind of pointing device.
     override func mouseDragged(with event: NSEvent) {
-        guard let origin = dragOrigin else { return super.mouseDragged(with: event) }
+        guard canPan else {
+            // No title bar to grab, so the ground moves the window.
+            window?.performDrag(with: event)
+            return
+        }
+        guard let origin = dragOrigin else { return }
         let point = convert(event.locationInWindow, from: nil)
         transform.offset.x += point.x - origin.x
         transform.offset.y += point.y - origin.y
@@ -210,8 +257,12 @@ final class ImageLayerView: NSView {
         applyLayout()
     }
 
+    /// The window has no title bar to double-click, so the picture itself takes the gesture.
     override func mouseUp(with event: NSEvent) {
         dragOrigin = nil
+        if event.clickCount == 2 {
+            zoomWindow(nil)
+        }
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
