@@ -8,6 +8,8 @@
 	<string>Macview</string>
 	<key>CFBundleExecutable</key>
 	<string>Macview</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>io.kkweb.macview</string>
 	<key>CFBundlePackageType</key>

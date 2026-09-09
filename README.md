@@ -44,6 +44,13 @@ These are qView's own defaults (`windowresizemode` 1, 20%, 70%) and its ground c
 
 Files can also be dropped on the window.
 
+## Icon
+
+`scripts/build-icon.py` turns `Resources/icon/source.png` into `Resources/AppIcon.icns`.
+The drawing arrives full-bleed on the app's charcoal; the script lifts the picture off that
+ground, grows it to Apple's 824pt body on a 1024pt canvas, and rounds it, so the corners are
+transparent the way macOS expects. Needs Pillow.
+
 ## Build
 
 ```

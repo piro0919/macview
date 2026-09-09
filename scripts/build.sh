@@ -13,6 +13,7 @@ rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$binary" "$app/Contents/MacOS/Macview"
 cp "$root/Resources/Info.plist" "$app/Contents/Info.plist"
+cp "$root/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$app"
 
 echo "built $app ($(du -sh "$app" | cut -f1))"
