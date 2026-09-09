@@ -15,19 +15,45 @@ enum SelfTest {
             }
         }
 
-        // Fitting: never enlarged past one image pixel per screen pixel, always centred.
-        let bounds = CGRect(x: 0, y: 0, width: 800, height: 600)
-        let small = ImageLayerView.fittedRect(pixelSize: CGSize(width: 200, height: 100), in: bounds)
-        expect(small.size == CGSize(width: 200, height: 100), "a small image stays at its own size")
-        expect(small.midX == bounds.midX && small.midY == bounds.midY, "a small image is centred")
+        // Fitting: never enlarged past its own size, and turning swaps which edge binds.
+        let window = CGSize(width: 800, height: 600)
+        expect(Layout.fitScale(pixelSize: CGSize(width: 200, height: 100), quarterTurns: 0, in: window) == 1,
+               "a small image stays at its own size")
+        expect(Layout.fitScale(pixelSize: CGSize(width: 8000, height: 2000), quarterTurns: 0, in: window) == 0.1,
+               "a wide image is fitted to the width")
+        expect(Layout.fitScale(pixelSize: CGSize(width: 8000, height: 2000), quarterTurns: 1, in: window) == 0.075,
+               "turning it a quarter fits it to the height instead")
+        expect(Layout.turnedSize(CGSize(width: 300, height: 700), quarterTurns: 1) == CGSize(width: 700, height: 300),
+               "a quarter turn swaps the sides")
+        expect(Layout.turnedSize(CGSize(width: 300, height: 700), quarterTurns: 2) == CGSize(width: 300, height: 700),
+               "a half turn leaves them alone")
+        expect(Layout.fitScale(pixelSize: .zero, quarterTurns: 0, in: window) == 1,
+               "an empty image asks for no scaling")
 
-        let wide = ImageLayerView.fittedRect(pixelSize: CGSize(width: 8000, height: 2000), in: bounds)
-        expect(wide.width == 800, "a wide image fills the width")
-        expect(wide.height == 200, "a wide image keeps its aspect ratio")
-        expect(bounds.contains(wide), "a fitted image stays inside the window")
+        // Turning wraps in both directions and forgets where the picture had been dragged to.
+        var view = ViewTransform()
+        view.offset = CGPoint(x: 40, y: 40)
+        view.turn(by: 1)
+        expect(view.quarterTurns == 1 && view.offset == .zero, "turning recentres the picture")
+        view.turn(by: -2)
+        expect(view.quarterTurns == 3, "turning back past zero wraps around")
 
-        let empty = ImageLayerView.fittedRect(pixelSize: .zero, in: bounds)
-        expect(empty == .zero, "an empty image asks for no space")
+        // Panning: held still while the picture fits, held inside its edges while it does not.
+        expect(Layout.clamp(offset: CGPoint(x: 50, y: 50), displayed: CGSize(width: 400, height: 300), in: window) == .zero,
+               "a picture smaller than the window stays centred")
+        expect(Layout.clamp(offset: CGPoint(x: 500, y: 0), displayed: CGSize(width: 1000, height: 600), in: window)
+               == CGPoint(x: 100, y: 0),
+               "a larger picture cannot be dragged past its own edge")
+
+        // Zooming under the pointer: what was under the cursor stays under it.
+        let anchored = Layout.offsetAnchoring(
+            cursor: CGPoint(x: 200, y: 300),
+            in: window,
+            offset: .zero,
+            oldDisplayed: CGSize(width: 800, height: 600),
+            newDisplayed: CGSize(width: 1600, height: 1200)
+        )
+        expect(anchored == CGPoint(x: 200, y: 0), "zooming holds the point under the cursor")
 
         // Window size on launch: fitted to the image, held between a fifth and seven tenths
         // of the screen.

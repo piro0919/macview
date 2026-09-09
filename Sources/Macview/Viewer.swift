@@ -29,7 +29,7 @@ final class Viewer: NSObject, NSWindowDelegate {
 
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-        window.isMovableByWindowBackground = true
+        window.isMovableByWindowBackground = false  // the view decides; see ImageLayerView.mouseDown
         // macOS restores a window's last frame on relaunch, which would land on top of the
         // fit to the image and leave the picture floating in a window of some older shape.
         window.isRestorable = false
@@ -76,13 +76,13 @@ final class Viewer: NSObject, NSWindowDelegate {
             let loaded = ImageLoader.load(url, maxPixelSize: Self.maxPixelSize)
             DispatchQueue.main.async {
                 guard token == self.loadToken else { return }
-                self.view.show(loaded?.first)
+                self.view.show(loaded?.first, resettingView: true)
                 if let first = loaded?.first, !self.hasSizedToFirstImage {
                     self.hasSizedToFirstImage = true
                     self.sizeWindow(to: first)
                 }
                 if let player = loaded?.player {
-                    player.onFrame = { [weak self] frame in self?.view.show(frame) }
+                    player.onFrame = { [weak self] frame in self?.view.showFrame(frame) }
                     self.player = player
                     player.start()
                 }
@@ -119,11 +119,13 @@ final class Viewer: NSObject, NSWindowDelegate {
         )
     }
 
+    /// Up and down turn the picture, the way they do in qView, so only left and right walk
+    /// the folder.
     private func handle(_ event: NSEvent) -> Bool {
         switch Int(event.keyCode) {
-        case 124, 125, 49:  // right, down, space
+        case 124, 49:  // right, space
             step(1)
-        case 123, 126, 51:  // left, up, delete
+        case 123:  // left
             step(-1)
         case 115:  // home
             jump(to: 0)

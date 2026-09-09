@@ -17,7 +17,7 @@
     "items": [
       {
         "title": "Puts nothing in the way",
-        "body": "No toolbar, no sidebar, no title bar. The window opens at the size of the first picture and the ground is a single #212121. What is on screen is the image."
+        "body": "No toolbar, no sidebar, no title bar. The window opens at the size of the first picture and the ground is a single #212121. Zooming and turning are done from the keys and the trackpad, so nothing is put on screen."
       },
       {
         "title": "Reads whatever the OS reads",
@@ -36,12 +36,40 @@
   "keys": {
     "title": "Keys",
     "items": [
-      { "key": "→ ↓ Space", "body": "Next image" },
-      { "key": "← ↑ Delete", "body": "Previous image" },
-      { "key": "Home / End", "body": "First / last" },
-      { "key": "⌘O", "body": "Open a file or folder" }
+      {
+        "key": "→ Space",
+        "body": "Next image"
+      },
+      {
+        "key": "←",
+        "body": "Previous image"
+      },
+      {
+        "key": "Home / End",
+        "body": "First / last"
+      },
+      {
+        "key": "↑ / ↓",
+        "body": "Rotate right / left"
+      },
+      {
+        "key": "F / ⌘F",
+        "body": "Mirror / flip"
+      },
+      {
+        "key": "⌘+ / ⌘−",
+        "body": "Zoom in / out"
+      },
+      {
+        "key": "⌘0 / O",
+        "body": "Fit to window / actual size"
+      },
+      {
+        "key": "⌘O",
+        "body": "Open a file or folder"
+      }
     ],
-    "note": "Files can also be dropped on the window."
+    "note": "Scrolling and pinching zoom around the pointer. Dragging moves the picture while it is larger than the window and moves the window while it is not. Files can also be dropped on the window."
   },
   "screens": {
     "window": "The window is the size of the picture, with no frame and no margin"

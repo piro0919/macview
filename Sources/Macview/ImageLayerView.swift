@@ -11,12 +11,14 @@ final class ImageLayerView: NSView {
 
     private let imageLayer = CALayer()
     private var image: CGImage?
+    private var transform = ViewTransform()
+    private var dragOrigin: CGPoint?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         layer?.backgroundColor = Self.ground.cgColor
-        imageLayer.contentsGravity = .resizeAspect
+        imageLayer.contentsGravity = .resize
         imageLayer.magnificationFilter = .trilinear
         imageLayer.minificationFilter = .trilinear
         layer?.addSublayer(imageLayer)
@@ -29,52 +31,187 @@ final class ImageLayerView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override var isOpaque: Bool { true }
 
-    func show(_ image: CGImage?) {
+    // MARK: - Content
+
+    /// A new picture arrives fitted and unturned. Keeping the previous turn would leave the
+    /// next photograph lying on its side for no reason the reader can see.
+    func show(_ image: CGImage?, resettingView resets: Bool) {
         self.image = image
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        imageLayer.contents = image
-        layoutImageLayer()
-        CATransaction.commit()
+        if resets { transform = ViewTransform() }
+        applyLayout()
+    }
+
+    /// The same picture, one frame on. The view is left exactly as it was.
+    func showFrame(_ image: CGImage) {
+        show(image, resettingView: false)
     }
 
     override func layout() {
         super.layout()
+        applyLayout()
+    }
+
+    private func applyLayout() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        layoutImageLayer()
-        CATransaction.commit()
-    }
+        defer { CATransaction.commit() }
 
-    private func layoutImageLayer() {
         guard let image else {
-            imageLayer.frame = .zero
+            imageLayer.contents = nil
             return
         }
-        imageLayer.frame = Self.fittedRect(
-            pixelSize: CGSize(width: image.width, height: image.height),
-            in: bounds
+        imageLayer.contents = image
+
+        let pixels = CGSize(width: image.width, height: image.height)
+        let scale = transform.scale
+            ?? Layout.fitScale(pixelSize: pixels, quarterTurns: transform.quarterTurns, in: bounds.size)
+        let unturned = CGSize(width: pixels.width * scale, height: pixels.height * scale)
+        let displayed = Layout.turnedSize(unturned, quarterTurns: transform.quarterTurns)
+        transform.offset = Layout.clamp(offset: transform.offset, displayed: displayed, in: bounds.size)
+
+        imageLayer.bounds = CGRect(origin: .zero, size: unturned)
+        imageLayer.position = CGPoint(
+            x: (bounds.midX + transform.offset.x).rounded(),
+            y: (bounds.midY + transform.offset.y).rounded()
         )
+        // The flips belong to the picture, so they are applied before it is turned.
+        var matrix = CATransform3DIdentity
+        matrix = CATransform3DRotate(matrix, -.pi / 2 * CGFloat(transform.quarterTurns), 0, 0, 1)
+        matrix = CATransform3DScale(
+            matrix,
+            transform.mirrored ? -1 : 1,
+            transform.flipped ? -1 : 1,
+            1
+        )
+        imageLayer.transform = matrix
     }
 
-    /// Fits the image inside `bounds`, never enlarging it past its own size.
-    static func fittedRect(pixelSize: CGSize, in bounds: CGRect) -> CGRect {
-        guard pixelSize.width > 0, pixelSize.height > 0, bounds.width > 0, bounds.height > 0 else {
-            return .zero
-        }
-        let ratio = min(bounds.width / pixelSize.width, bounds.height / pixelSize.height, 1)
-        let size = CGSize(width: (pixelSize.width * ratio).rounded(), height: (pixelSize.height * ratio).rounded())
-        return CGRect(
-            x: ((bounds.width - size.width) / 2).rounded(),
-            y: ((bounds.height - size.height) / 2).rounded(),
-            width: size.width,
-            height: size.height
-        )
+    // MARK: - Zoom, turn, flip
+
+    private var currentScale: CGFloat {
+        guard let image else { return 1 }
+        let pixels = CGSize(width: image.width, height: image.height)
+        return transform.scale
+            ?? Layout.fitScale(pixelSize: pixels, quarterTurns: transform.quarterTurns, in: bounds.size)
     }
+
+    private var canPan: Bool {
+        guard let image else { return false }
+        let pixels = CGSize(width: image.width, height: image.height)
+        let scaled = CGSize(width: pixels.width * currentScale, height: pixels.height * currentScale)
+        let displayed = Layout.turnedSize(scaled, quarterTurns: transform.quarterTurns)
+        return displayed.width > bounds.width + 1 || displayed.height > bounds.height + 1
+    }
+
+    private func displayedSize(at scale: CGFloat) -> CGSize {
+        guard let image else { return .zero }
+        let scaled = CGSize(width: CGFloat(image.width) * scale, height: CGFloat(image.height) * scale)
+        return Layout.turnedSize(scaled, quarterTurns: transform.quarterTurns)
+    }
+
+    func zoom(by factor: CGFloat, at cursor: CGPoint?) {
+        guard image != nil else { return }
+        let old = currentScale
+        let new = min(max(old * factor, ViewTransform.minScale), ViewTransform.maxScale)
+        guard new != old else { return }
+        if let cursor {
+            transform.offset = Layout.offsetAnchoring(
+                cursor: cursor,
+                in: bounds.size,
+                offset: transform.offset,
+                oldDisplayed: displayedSize(at: old),
+                newDisplayed: displayedSize(at: new)
+            )
+        }
+        transform.scale = new
+        applyLayout()
+    }
+
+    func zoomToFit() {
+        transform.scale = nil
+        transform.offset = .zero
+        applyLayout()
+    }
+
+    func zoomToActualSize() {
+        transform.scale = 1
+        transform.offset = .zero
+        applyLayout()
+    }
+
+    func turn(by turns: Int) {
+        transform.turn(by: turns)
+        applyLayout()
+    }
+
+    func mirror() {
+        transform.mirrored.toggle()
+        applyLayout()
+    }
+
+    func flip() {
+        transform.flipped.toggle()
+        applyLayout()
+    }
+
+    // MARK: - Menu actions
+
+    // The menu items carry no target, so these are found on the responder chain: the view
+    // holding the picture is the one that knows how it is being shown.
+    @objc func zoomIn(_ sender: Any?) { zoom(by: ViewTransform.step, at: nil) }
+    @objc func zoomOut(_ sender: Any?) { zoom(by: 1 / ViewTransform.step, at: nil) }
+    @objc func resetZoom(_ sender: Any?) { zoomToFit() }
+    @objc func originalSize(_ sender: Any?) { zoomToActualSize() }
+    @objc func rotateRight(_ sender: Any?) { turn(by: 1) }
+    @objc func rotateLeft(_ sender: Any?) { turn(by: -1) }
+    @objc func mirrorImage(_ sender: Any?) { mirror() }
+    @objc func flipImage(_ sender: Any?) { flip() }
+
+    // MARK: - Events
 
     override func keyDown(with event: NSEvent) {
         if onKeyDown?(event) == true { return }
         super.keyDown(with: event)
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        let delta = event.scrollingDeltaY
+        guard delta != 0 else { return }
+        let factor = event.hasPreciseScrollingDeltas
+            ? pow(ViewTransform.step, delta / 60)
+            : (delta > 0 ? ViewTransform.step : 1 / ViewTransform.step)
+        zoom(by: factor, at: convert(event.locationInWindow, from: nil))
+    }
+
+    override func magnify(with event: NSEvent) {
+        zoom(by: 1 + event.magnification, at: convert(event.locationInWindow, from: nil))
+    }
+
+    /// The window has no title bar to grab, so dragging the ground moves the window - except
+    /// while the picture is larger than the window, when dragging moves the picture instead.
+    /// AppKit's own background dragging is not used: it decides before the view sees the event,
+    /// and it moved the window while the picture was zoomed in.
+    override func mouseDown(with event: NSEvent) {
+        guard canPan else {
+            window?.performDrag(with: event)
+            return
+        }
+        dragOrigin = convert(event.locationInWindow, from: nil)
+    }
+
+    /// The drag is measured from where the pointer actually is, not from the event's reported
+    /// delta: a delta is not filled in by every kind of pointing device.
+    override func mouseDragged(with event: NSEvent) {
+        guard let origin = dragOrigin else { return super.mouseDragged(with: event) }
+        let point = convert(event.locationInWindow, from: nil)
+        transform.offset.x += point.x - origin.x
+        transform.offset.y += point.y - origin.y
+        dragOrigin = point
+        applyLayout()
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        dragOrigin = nil
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {

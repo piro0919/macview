@@ -64,6 +64,43 @@ enum MainMenu {
         fileItem.submenu = fileMenu
         main.addItem(fileItem)
 
+        main.addItem(viewItem())
+
         return main
+    }
+
+    /// The keys are qView's: a quarter turn on the up and down arrows, F to mirror, ⌘F to flip.
+    /// Nothing of this appears in the window; the menu is where a reader finds it.
+    private static func viewItem() -> NSMenuItem {
+        let item = NSMenuItem()
+        let menu = NSMenu(title: "View")
+
+        add(menu, "Zoom In", #selector(ImageLayerView.zoomIn(_:)), "+", .command)
+        add(menu, "Zoom Out", #selector(ImageLayerView.zoomOut(_:)), "-", .command)
+        add(menu, "Reset Zoom", #selector(ImageLayerView.resetZoom(_:)), "0", .command)
+        add(menu, "Original Size", #selector(ImageLayerView.originalSize(_:)), "o", [])
+        menu.addItem(.separator())
+        add(menu, "Rotate Right", #selector(ImageLayerView.rotateRight(_:)), arrow(NSUpArrowFunctionKey), [])
+        add(menu, "Rotate Left", #selector(ImageLayerView.rotateLeft(_:)), arrow(NSDownArrowFunctionKey), [])
+        add(menu, "Mirror", #selector(ImageLayerView.mirrorImage(_:)), "f", [])
+        add(menu, "Flip", #selector(ImageLayerView.flipImage(_:)), "f", .command)
+
+        item.submenu = menu
+        return item
+    }
+
+    private static func arrow(_ code: Int) -> String {
+        String(UnicodeScalar(UInt32(code)) ?? " ")
+    }
+
+    private static func add(
+        _ menu: NSMenu,
+        _ title: String,
+        _ action: Selector,
+        _ key: String,
+        _ modifiers: NSEvent.ModifierFlags
+    ) {
+        let item = menu.addItem(withTitle: title, action: action, keyEquivalent: key)
+        item.keyEquivalentModifierMask = modifiers
     }
 }

@@ -51,14 +51,24 @@ These are qView's own defaults (`windowresizemode` 1, 20%, 70%) and its ground c
 
 ## Keys
 
+The bindings are qView's, which is why the up and down arrows turn the picture rather than
+walk the folder.
+
 | Key | |
 | --- | --- |
-| → ↓ Space | next image |
-| ← ↑ Delete | previous image |
+| → Space | next image |
+| ← | previous image |
 | Home / End | first / last image |
+| ↑ / ↓ | rotate right / left |
+| F / ⌘F | mirror / flip |
+| ⌘+ / ⌘- | zoom in / out, a quarter at a time |
+| ⌘0 | fit to the window |
+| O | actual size |
 | Esc | close |
 | ⌘O | open a file or folder |
 
+Scrolling and pinching zoom around the pointer. Dragging moves the picture while it is larger
+than the window, and moves the window while it is not — there is no title bar to grab.
 Files can also be dropped on the window.
 
 ## Icon
@@ -81,4 +91,5 @@ full Xcode rather than the Command Line Tools alone.
 
 ## Not included
 
-Saving, exporting, editing, rotating, renaming and deleting. This is a viewer.
+Saving, exporting, editing, renaming and deleting. Turning, flipping and zooming change how
+the picture is shown and never touch the file; Macview has no way to write one.
