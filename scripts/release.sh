@@ -20,7 +20,10 @@ repo="piro0919/macview"
 app="dist/Macview.app"
 zip="Macview-${version}.zip"
 
+# Sparkle compares CFBundleVersion, not the version people read, so it has to keep climbing.
+build_number=$(( $(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" Resources/Info.plist) + 1 ))
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${version}" Resources/Info.plist
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${build_number}" Resources/Info.plist
 ./scripts/build.sh
 
 # Whatever is about to be handed out is checked first.
