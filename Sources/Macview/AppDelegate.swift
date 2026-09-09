@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         currentViewer().showWindow()
         NSApp.activate(ignoringOtherApps: true)
+        Updater.shared.checkQuietly()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -50,6 +51,11 @@ enum MainMenu {
         appMenu.addItem(withTitle: "About Macview",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
+        appMenu.addItem(.separator())
+        let update = appMenu.addItem(withTitle: "Check for Updates…",
+                                     action: #selector(Updater.checkForUpdates(_:)),
+                                     keyEquivalent: "")
+        update.target = Updater.shared
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Hide Macview", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(.separator())
