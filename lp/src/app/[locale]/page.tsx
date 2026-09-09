@@ -77,10 +77,10 @@ export default async function Page({ params }: PageProps) {
           <Image
             alt={t("screens.window")}
             className="w-full max-w-3xl"
-            height={736}
+            height={1066}
             priority={true}
-            src="/window.png"
-            width={1100}
+            src="/window.jpg"
+            width={1600}
           />
           <p className="mt-4 text-ink-3 text-sm">{t("screens.window")}</p>
         </div>

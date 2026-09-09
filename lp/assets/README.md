@@ -17,3 +17,10 @@ pyftsubset /tmp/ZenKakuGothicNew-Black.ttf \
   --output-file=assets/ZenKakuGothicNew-Black-subset.ttf \
   --no-hinting --desubroutinize --layout-features=''
 ```
+
+## sample-earth.jpg
+
+The picture shown inside the window on the landing page. Taken from the International Space
+Station on Expedition 58 (NASA id iss058e005282) and resized to 1100×733. NASA imagery is not
+copyrighted, which is why it is here: the screenshot needed a photograph whose licence asks
+nothing of whoever reuses the screenshot.
