@@ -11,6 +11,23 @@ Existing minimal viewers carry their own toolkit and their own decoders. qView, 
 ships 117 MB of Qt frameworks to show a JPEG. Macview links nothing but the system:
 AppKit, CoreGraphics, ImageIO, QuartzCore. The bundle is under 200 KB.
 
+## Installing
+
+```
+brew install --cask piro0919/tap/macview
+```
+
+Or take the .dmg from [the latest release](https://github.com/piro0919/macview/releases/latest).
+
+Macview is signed only by itself, not notarized by Apple, so the first launch is refused
+with "Apple could not verify Macview.app is free of malware". Open it once from the
+right-click menu in Finder — the same dialog appears with an Open button — and every launch
+after that is ordinary. Or clear the quarantine flag from a terminal:
+
+```
+xattr -dr com.apple.quarantine /Applications/Macview.app
+```
+
 ## Formats
 
 Whatever ImageIO reads, Macview reads — JPEG, PNG, GIF, TIFF, HEIC, WebP, AVIF, JPEG XL
