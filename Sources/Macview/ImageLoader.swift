@@ -14,20 +14,30 @@ enum ImageLoader {
         return type.conforms(to: .image)
     }
 
+    /// The first frame, plus a player when there are more frames behind it.
+    struct Loaded {
+        let first: CGImage
+        let player: AnimationPlayer?
+    }
+
+    static func load(_ url: URL, maxPixelSize: Int) -> Loaded? {
+        let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary),
+              let first = frame(of: source, at: 0, maxPixelSize: maxPixelSize)
+        else { return nil }
+        return Loaded(first: first, player: AnimationPlayer(source: source, maxPixelSize: maxPixelSize))
+    }
+
     /// Decoded at most `maxPixelSize` on the long edge, with the EXIF orientation already applied.
     /// The window only ever shows the image fitted, so a full-resolution buffer would be paid for
     /// and thrown away.
-    static func load(_ url: URL, maxPixelSize: Int) -> CGImage? {
-        let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
-        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary) else {
-            return nil
-        }
+    static func frame(of source: CGImageSource, at index: Int, maxPixelSize: Int) -> CGImage? {
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
             kCGImageSourceShouldCacheImmediately: true,
             kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
         ]
-        return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+        return CGImageSourceCreateThumbnailAtIndex(source, index, options as CFDictionary)
     }
 }

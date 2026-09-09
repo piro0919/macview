@@ -66,14 +66,47 @@ enum SelfTest {
         if let written = writeTestPNG(to: directory.appendingPathComponent("real.png"), width: 300, height: 120) {
             let decoded = ImageLoader.load(written, maxPixelSize: 100)
             expect(decoded != nil, "a PNG decodes")
-            expect(decoded.map { max($0.width, $0.height) <= 100 } ?? false,
+            expect(decoded.map { max($0.first.width, $0.first.height) <= 100 } ?? false,
                    "decoding stops at the requested size")
+            expect(decoded?.player == nil, "a still image is given no clock")
         } else {
             expect(false, "a test PNG could be written")
         }
 
+        // Animation: frames counted and their delays read, without unpacking them all.
+        if let animated = writeTestGIF(to: directory.appendingPathComponent("moving.gif"),
+                                       frames: 3, delay: 0.08) {
+            let loaded = ImageLoader.load(animated, maxPixelSize: 200)
+            expect(loaded?.player?.frameCount == 3, "an animated GIF reports its frames")
+            let delays = loaded?.player?.frameDelays ?? []
+            expect(delays.count == 3 && delays.allSatisfy { abs($0 - 0.08) < 0.005 },
+                   "frame delays are read from the file")
+        } else {
+            expect(false, "a test GIF could be written")
+        }
+
         print(failures.isEmpty ? "\nall checks passed" : "\n\(failures.count) failed")
         return failures.isEmpty
+    }
+
+    private static func writeTestGIF(to url: URL, frames: Int, delay: TimeInterval) -> URL? {
+        guard let destination = CGImageDestinationCreateWithURL(
+            url as CFURL, UTType.gif.identifier as CFString, frames, nil) else { return nil }
+        let frameProperties = [
+            kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: delay]
+        ] as CFDictionary
+        for step in 0..<frames {
+            guard let context = CGContext(
+                data: nil, width: 8, height: 8, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ) else { return nil }
+            context.setFillColor(gray: CGFloat(step) / CGFloat(frames), alpha: 1)
+            context.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+            guard let image = context.makeImage() else { return nil }
+            CGImageDestinationAddImage(destination, image, frameProperties)
+        }
+        return CGImageDestinationFinalize(destination) ? url : nil
     }
 
     private static func writeTestPNG(to url: URL, width: Int, height: Int) -> URL? {

@@ -17,6 +17,12 @@ Whatever ImageIO reads, Macview reads — JPEG, PNG, GIF, TIFF, HEIC, WebP, AVIF
 and the camera RAW formats among them. There is no bundled decoder and no format list to
 maintain.
 
+## Animation
+
+Animated GIF, APNG, animated WebP and HEICS play on their own frame delays, read from the
+file. Frames are decoded one at a time as they are needed rather than unpacked into memory
+up front, so a long animation costs no more to hold than a still.
+
 ## The window
 
 The window is fitted to the image once, when it opens, and is then left alone — stepping

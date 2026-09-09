@@ -7,6 +7,7 @@ final class Viewer: NSObject, NSWindowDelegate {
     private let view = ImageLayerView()
     private var playlist: Playlist?
     private var loadToken = 0
+    private var player: AnimationPlayer?
     private var hasSizedToFirstImage = false
 
     /// Nothing is ever shown larger than the screen can resolve, so nothing larger is decoded.
@@ -65,14 +66,22 @@ final class Viewer: NSObject, NSWindowDelegate {
         let token = loadToken
         window.title = url.lastPathComponent
 
+        player?.stop()
+        player = nil
+
         DispatchQueue.global(qos: .userInitiated).async {
-            let image = ImageLoader.load(url, maxPixelSize: Self.maxPixelSize)
+            let loaded = ImageLoader.load(url, maxPixelSize: Self.maxPixelSize)
             DispatchQueue.main.async {
                 guard token == self.loadToken else { return }
-                self.view.show(image)
-                if let image, !self.hasSizedToFirstImage {
+                self.view.show(loaded?.first)
+                if let first = loaded?.first, !self.hasSizedToFirstImage {
                     self.hasSizedToFirstImage = true
-                    self.sizeWindow(to: image)
+                    self.sizeWindow(to: first)
+                }
+                if let player = loaded?.player {
+                    player.onFrame = { [weak self] frame in self?.view.show(frame) }
+                    self.player = player
+                    player.start()
                 }
             }
         }
