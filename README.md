@@ -17,6 +17,15 @@ Whatever ImageIO reads, Macview reads — JPEG, PNG, GIF, TIFF, HEIC, WebP, AVIF
 and the camera RAW formats among them. There is no bundled decoder and no format list to
 maintain.
 
+## The window
+
+The window is fitted to the image once, when it opens, and is then left alone — stepping
+through a folder never moves or reshapes it. Images of a different shape sit centred on the
+ground. The fitted window is held between a fifth and seven tenths of the screen.
+
+These are qView's own defaults (`windowresizemode` 1, 20%, 70%) and its ground colour
+(#212121), matched deliberately. No qView code is used: it is GPL-3.0 and this is not.
+
 ## Keys
 
 | Key | |

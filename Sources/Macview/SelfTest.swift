@@ -29,6 +29,16 @@ enum SelfTest {
         let empty = ImageLayerView.fittedRect(pixelSize: .zero, in: bounds)
         expect(empty == .zero, "an empty image asks for no space")
 
+        // Window size on launch: fitted to the image, held between a fifth and seven tenths
+        // of the screen.
+        let screen = CGSize(width: 1000, height: 1000)
+        expect(Viewer.windowSize(imagePixelSize: CGSize(width: 400, height: 300), screenSize: screen)
+               == CGSize(width: 400, height: 300), "an ordinary image opens at its own size")
+        let huge = Viewer.windowSize(imagePixelSize: CGSize(width: 4000, height: 2000), screenSize: screen)
+        expect(huge == CGSize(width: 700, height: 350), "a huge image stops at seven tenths of the screen")
+        let tiny = Viewer.windowSize(imagePixelSize: CGSize(width: 32, height: 32), screenSize: screen)
+        expect(tiny == CGSize(width: 200, height: 200), "a tiny image still gets a fifth of the screen")
+
         // Formats: the whole design rests on ImageIO covering these without a decoder of our own.
         for identifier in ["org.webmproject.webp", "public.avif", "public.heic", "public.jpeg-xl"] {
             expect(ImageLoader.supportedTypeIdentifiers.contains(identifier), "ImageIO reads \(identifier)")

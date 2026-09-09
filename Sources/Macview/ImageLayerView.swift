@@ -3,7 +3,8 @@ import AppKit
 /// The whole window is this view. Nothing is drawn except the image and the ground it sits on.
 final class ImageLayerView: NSView {
     /// Dark, and fixed: an image is judged against a neutral ground, not against the system theme.
-    static let ground = NSColor(calibratedWhite: 0.09, alpha: 1)
+    /// #212121, the same ground qView settles on.
+    static let ground = NSColor(srgbRed: 0x21 / 255, green: 0x21 / 255, blue: 0x21 / 255, alpha: 1)
 
     var onKeyDown: ((NSEvent) -> Bool)?
     var onOpen: (([URL]) -> Void)?

@@ -80,14 +80,31 @@ final class Viewer: NSObject, NSWindowDelegate {
 
     private func sizeWindow(to image: CGImage) {
         guard let screen = window.screen ?? NSScreen.main else { return }
-        let natural = CGSize(width: CGFloat(image.width), height: CGFloat(image.height))
-        let limit = screen.visibleFrame.insetBy(dx: screen.visibleFrame.width * 0.05,
-                                                dy: screen.visibleFrame.height * 0.05).size
-        let ratio = min(limit.width / natural.width, limit.height / natural.height, 1)
-        let size = NSSize(width: max((natural.width * ratio).rounded(), 200),
-                          height: max((natural.height * ratio).rounded(), 150))
+        let size = Self.windowSize(
+            imagePixelSize: CGSize(width: image.width, height: image.height),
+            screenSize: screen.visibleFrame.size
+        )
         window.setContentSize(size)
         window.center()
+    }
+
+    /// The window is fitted to the image once, on launch, and then left alone — qView's own
+    /// default. Its bounds are qView's too: never below a fifth of the screen, never above
+    /// seven tenths of it.
+    static let minScreenFraction: CGFloat = 0.20
+    static let maxScreenFraction: CGFloat = 0.70
+
+    static func windowSize(imagePixelSize: CGSize, screenSize: CGSize) -> CGSize {
+        guard imagePixelSize.width > 0, imagePixelSize.height > 0 else { return screenSize }
+        let ceiling = CGSize(width: screenSize.width * maxScreenFraction,
+                             height: screenSize.height * maxScreenFraction)
+        let floor = CGSize(width: screenSize.width * minScreenFraction,
+                           height: screenSize.height * minScreenFraction)
+        let ratio = min(ceiling.width / imagePixelSize.width, ceiling.height / imagePixelSize.height, 1)
+        return CGSize(
+            width: max(imagePixelSize.width * ratio, floor.width).rounded(),
+            height: max(imagePixelSize.height * ratio, floor.height).rounded()
+        )
     }
 
     private func handle(_ event: NSEvent) -> Bool {
