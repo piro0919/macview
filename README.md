@@ -8,8 +8,11 @@ sits on a neutral dark ground, and steps through the rest of the folder with the
 ## Why
 
 Existing minimal viewers carry their own toolkit and their own decoders. qView, for one,
-ships 117 MB of Qt frameworks to show a JPEG. Macview links nothing but the system:
-AppKit, CoreGraphics, ImageIO, QuartzCore. The bundle is under 200 KB.
+ships 117 MB of Qt frameworks to show a JPEG. Macview reads and draws with nothing but the
+system: AppKit, CoreGraphics, ImageIO, QuartzCore. Its own code is 250 KB.
+
+The bundle is 4.6 MB, and honesty about where that goes: 3 MB is Sparkle, which carries the
+automatic updates, and 1.3 MB is the icon. Nothing in it decodes or draws a picture.
 
 ## Installing
 

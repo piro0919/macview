@@ -24,8 +24,8 @@
         "body": "JPEG, PNG, GIF, TIFF, HEIC, WebP, AVIF, JPEG XL and the camera RAW formats. The reading is done by ImageIO, so there is no bundled decoder and no list of supported formats to maintain."
       },
       {
-        "title": "200 KB",
-        "body": "Nothing is bundled; the only things it links are macOS frameworks. Measured here, a window is on screen about half a second after launch."
+        "title": "250 KB of code",
+        "body": "Pictures are read and drawn by macOS frameworks; the only thing bundled is Sparkle, which carries the automatic updates. The whole app is 4.6 MB, of which 3 MB is that Sparkle and 1.3 MB is the icon. Measured here, a window is on screen about half a second after launch."
       },
       {
         "title": "Plays animations",
