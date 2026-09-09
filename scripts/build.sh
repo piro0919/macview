@@ -33,6 +33,27 @@ cp "$root/Resources/Info.plist" "$app/Contents/Info.plist"
 cp "$root/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 cp -R Vendor/Sparkle.framework "$app/Contents/Frameworks/"
 
+# Sparkle ships for both architectures, in every language, with its headers. None of that is
+# needed inside an arm64-only app: dropping it takes the framework from 3.0 MB to about 1.5 MB.
+sparkle="$app/Contents/Frameworks/Sparkle.framework/Versions/B"
+rm -rf "$sparkle/Headers" "$sparkle/PrivateHeaders" "$sparkle/Modules"
+rm -rf "$app/Contents/Frameworks/Sparkle.framework/Headers" \
+       "$app/Contents/Frameworks/Sparkle.framework/PrivateHeaders" \
+       "$app/Contents/Frameworks/Sparkle.framework/Modules"
+for binary in \
+  "$sparkle/Sparkle" \
+  "$sparkle/Autoupdate" \
+  "$sparkle/Updater.app/Contents/MacOS/Updater" \
+  "$sparkle/XPCServices/Downloader.xpc/Contents/MacOS/Downloader" \
+  "$sparkle/XPCServices/Installer.xpc/Contents/MacOS/Installer"; do
+  [ -f "$binary" ] || continue
+  lipo -thin arm64 "$binary" -output "$binary.arm64" 2>/dev/null && mv "$binary.arm64" "$binary"
+done
+# Sparkle's own dialogs are the only text the app shows. English and Japanese are kept; the
+# other 34 languages would only be carried around.
+find "$sparkle/Resources" -maxdepth 1 -name "*.lproj" \
+  ! -name "en.lproj" ! -name "ja.lproj" -exec rm -rf {} +
+
 # The bundled framework is signed from the inside out: signing the app first and then changing
 # something inside it leaves the app's own signature broken.
 for helper in XPCServices/Downloader.xpc XPCServices/Installer.xpc Autoupdate Updater.app; do

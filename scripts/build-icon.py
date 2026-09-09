@@ -30,6 +30,17 @@ def picture_bounds(image):
     return box
 
 
+def flatten(image):
+    """Drops the drawing onto a small palette.
+
+    The artwork is three flat colours, but it arrives with a pixel or two of noise across every
+    flat field - enough to defeat PNG entirely: the 1024 was 751 KB. Reducing to 64 colours,
+    chosen from the picture rather than from a fixed grid, leaves the colours where they were
+    (the teal moves by one value) and takes the same image to 20 KB.
+    """
+    return image.quantize(colors=64, method=Image.FASTOCTREE, dither=Image.NONE)
+
+
 def main():
     source = Image.open(SOURCE).convert("RGB")
     canvas = source.crop(picture_bounds(source)).resize((CANVAS, CANVAS), Image.LANCZOS)
@@ -38,8 +49,8 @@ def main():
     subprocess.run(["rm", "-rf", str(iconset)], check=True)
     iconset.mkdir(parents=True)
     for size in (16, 32, 128, 256, 512):
-        canvas.resize((size, size), Image.LANCZOS).save(iconset / f"icon_{size}x{size}.png", optimize=True)
-        canvas.resize((size * 2, size * 2), Image.LANCZOS).save(iconset / f"icon_{size}x{size}@2x.png", optimize=True)
+        for name, side in ((f"icon_{size}x{size}.png", size), (f"icon_{size}x{size}@2x.png", size * 2)):
+            flatten(canvas.resize((side, side), Image.LANCZOS)).save(iconset / name, optimize=True)
 
     subprocess.run(["iconutil", "-c", "icns", str(iconset), "-o", str(ICNS)], check=True)
     subprocess.run(["rm", "-rf", str(iconset)], check=True)
