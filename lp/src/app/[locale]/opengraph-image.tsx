@@ -51,7 +51,7 @@ export default async function OgImage({
           Macview
         </div>
         <div style={{ color: MUTED, display: "flex", fontSize: 32, marginTop: 14 }}>
-          {isJa ? "窓が、画像そのものです" : "The window is the image"}
+          {isJa ? "開くと、画像だけが出ます" : "The picture, and nothing else"}
         </div>
       </div>
     </div>,
