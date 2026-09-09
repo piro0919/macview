@@ -30,6 +30,9 @@ final class Viewer: NSObject, NSWindowDelegate {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
+        // macOS restores a window's last frame on relaunch, which would land on top of the
+        // fit to the image and leave the picture floating in a window of some older shape.
+        window.isRestorable = false
         window.backgroundColor = ImageLayerView.ground
         window.contentView = view
         window.delegate = self
