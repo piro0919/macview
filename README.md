@@ -11,8 +11,11 @@ Existing minimal viewers carry their own toolkit and their own decoders. qView, 
 ships 117 MB of Qt frameworks to show a JPEG. Macview reads and draws with nothing but the
 system: AppKit, CoreGraphics, ImageIO, QuartzCore. Its own code is 250 KB.
 
-The bundle is 4.6 MB, and honesty about where that goes: 3 MB is Sparkle, which carries the
-automatic updates, and 1.3 MB is the icon. Nothing in it decodes or draws a picture.
+The bundle is 1.6 MB, of which 1.3 MB is Sparkle carrying the automatic updates. Nothing in it
+decodes or draws a picture. Sparkle arrives at 3 MB — for both architectures, in 36 languages,
+with its headers — and `scripts/build.sh` keeps only what an arm64 app in two languages needs.
+The icon is 59 KB: the drawing is three flat colours, so it is written on a 64-colour palette
+rather than in full colour, which is the difference between 59 KB and 1.3 MB.
 
 ## Installing
 
