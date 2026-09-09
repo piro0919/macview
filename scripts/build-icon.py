@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 """Turns Resources/icon/source.png into Resources/AppIcon.icns.
 
-The drawing arrives as a full-bleed square on the app's own charcoal. macOS wants the
-opposite: a rounded body with transparent corners, sized to Apple's grid — an 824pt body
-centred on a 1024pt canvas. So the picture is lifted off its ground, grown to fill that
-body, and rounded.
+The drawing arrives sitting on the app's own charcoal with a wide margin around it. The
+margin is trimmed away so the picture fills the icon, and what is left is written out
+fully opaque, square, corners and all: macOS rounds app icons itself, and an icon that
+arrives pre-rounded gets the system shape laid over the top of its own.
 """
 import pathlib
 import subprocess
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "Resources" / "icon" / "source.png"
 ICNS = ROOT / "Resources" / "AppIcon.icns"
 
 CANVAS = 1024
-BODY = 824
-RADIUS = 185  # Apple's corner radius at this body size.
 GROUND = (33, 33, 33)  # #212121, the charcoal the drawing sits on.
 TOLERANCE = 24
 
@@ -33,15 +31,8 @@ def picture_bounds(image):
 
 
 def main():
-    source = Image.open(SOURCE).convert("RGBA")
-    body = source.crop(picture_bounds(source)).resize((BODY, BODY), Image.LANCZOS)
-
-    mask = Image.new("L", (BODY, BODY), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, BODY - 1, BODY - 1], radius=RADIUS, fill=255)
-    body.putalpha(mask)
-
-    canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    canvas.paste(body, ((CANVAS - BODY) // 2, (CANVAS - BODY) // 2), body)
+    source = Image.open(SOURCE).convert("RGB")
+    canvas = source.crop(picture_bounds(source)).resize((CANVAS, CANVAS), Image.LANCZOS)
 
     iconset = ROOT / "Resources" / "AppIcon.iconset"
     subprocess.run(["rm", "-rf", str(iconset)], check=True)
