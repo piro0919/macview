@@ -1,0 +1,8 @@
+{
+  "name": "macview",
+  "private": true,
+  "scripts": {
+    "lp:dev": "pnpm --filter macview-lp dev",
+    "lp:build": "pnpm --filter macview-lp build"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "title": "Macview — a macOS image viewer where the window is the image",
+    "description": "No toolbar, no sidebar, no title bar. The window opens at the size of the picture, and the arrow keys step through the rest of the folder. A 200 KB image viewer for macOS."
+  },
+  "hero": {
+    "title": "The window is the image",
+    "tagline": "Nothing of the tool is on screen. The window opens at the size of the picture and the picture runs to its edges. The arrow keys step through the rest of the folder.",
+    "download": "Download",
+    "source": "View source",
+    "note": "Free and open source. For Apple silicon Macs running macOS 14 Sonoma or later.",
+    "firstRun": "The first launch has to be opened from the right-click menu",
+    "firstRunLink": "See how"
+  },
+  "features": {
+    "title": "What Macview does",
+    "items": [
+      {
+        "title": "Puts nothing in the way",
+        "body": "No toolbar, no sidebar, no title bar. The window opens at the size of the first picture and the ground is a single #212121. What is on screen is the image."
+      },
+      {
+        "title": "Reads whatever the OS reads",
+        "body": "JPEG, PNG, GIF, TIFF, HEIC, WebP, AVIF, JPEG XL and the camera RAW formats. The reading is done by ImageIO, so there is no bundled decoder and no list of supported formats to maintain."
+      },
+      {
+        "title": "200 KB",
+        "body": "Nothing is bundled; the only things it links are macOS frameworks. Measured here, a window is on screen about half a second after launch."
+      },
+      {
+        "title": "Plays animations",
+        "body": "Animated GIF, APNG, animated WebP and HEICS play on the frame delays written in the file. Frames are pulled one at a time as they are needed rather than unpacked up front."
+      }
+    ]
+  },
+  "keys": {
+    "title": "Keys",
+    "items": [
+      { "key": "→ ↓ Space", "body": "Next image" },
+      { "key": "← ↑ Delete", "body": "Previous image" },
+      { "key": "Home / End", "body": "First / last" },
+      { "key": "⌘O", "body": "Open a file or folder" }
+    ],
+    "note": "Files can also be dropped on the window."
+  },
+  "screens": {
+    "window": "The window is the size of the picture, with no frame and no margin"
+  },
+  "footer": {
+    "source": "View on GitHub",
+    "privacy": "Privacy"
+  },
+  "language": {
+    "en": "EN",
+    "ja": "日本語"
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "updated": "Last updated: 9 September 2026",
+    "intro": "Macview is an app for looking at pictures. It collects nothing. There is little to write here, so this is short.",
+    "sections": [
+      {
+        "title": "It does not go on the network",
+        "body": "Macview makes no connections. It does not even check for updates, so nothing leaves your Mac when you launch it or open a picture. There is no server behind it and no account."
+      },
+      {
+        "title": "Pictures are only opened",
+        "body": "A picture you open is read in order to put it on screen. Nothing is sent anywhere, nothing is copied, nothing is recorded. The app has no way to write at all."
+      },
+      {
+        "title": "There is no analytics",
+        "body": "No crash reporting, no usage measurement, no device identifier, no third-party SDK is in the app."
+      },
+      {
+        "title": "You can check",
+        "body": "Macview is published under the MIT license. None of this has to be taken on trust: read the source, and open an issue if something looks wrong."
+      },
+      {
+        "title": "About this site",
+        "body": "This page is hosted on Vercel and counts page views with Vercel Web Analytics. No value identifying a person is stored. It has nothing to do with the app."
+      }
+    ],
+    "back": "Back to Macview"
+  }
+}

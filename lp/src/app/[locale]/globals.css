@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  /* 色はアイコンから取る。地の炭はアプリが画像を載せている色そのままで、
+     差し色はアイコンに入っている2色だけ。押せるところに琥珀、
+     線と細部に青緑を回している */
+  --color-paper: #1c1c1c;
+  --color-field: #212121;
+  --color-teal: #037475;
+  --color-amber: #feb801;
+  --color-ink: #f3f2ef;
+  --color-ink-2: rgba(243, 242, 239, 0.62);
+  --color-ink-3: rgba(243, 242, 239, 0.38);
+  --color-line: rgba(243, 242, 239, 0.14);
+  --font-display: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+
+  /* 日本語を語のまとまりで折り返す。これが無いと見出しが「を、」で割れる */
+  word-break: auto-phrase;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-teal) 40%, transparent);
+}
