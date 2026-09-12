@@ -20,6 +20,13 @@ enum ImageLoader {
         let player: AnimationPlayer?
     }
 
+    /// Decoding a large image takes long enough to drop frames if it runs on the main thread.
+    /// The caller stays on the main actor and only waits for the result.
+    @concurrent
+    static func loaded(_ url: URL, maxPixelSize: Int) async -> Loaded? {
+        load(url, maxPixelSize: maxPixelSize)
+    }
+
     static func load(_ url: URL, maxPixelSize: Int) -> Loaded? {
         let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary),
