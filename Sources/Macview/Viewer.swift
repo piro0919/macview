@@ -1,6 +1,7 @@
 import AppKit
 
 /// One window, one image. The window is the image.
+@MainActor
 final class Viewer: NSObject, NSWindowDelegate {
     let window: NSWindow
 
@@ -72,20 +73,22 @@ final class Viewer: NSObject, NSWindowDelegate {
         player?.stop()
         player = nil
 
-        DispatchQueue.global(qos: .userInitiated).async {
-            let loaded = ImageLoader.load(url, maxPixelSize: Self.maxPixelSize)
-            DispatchQueue.main.async {
-                guard token == self.loadToken else { return }
-                self.view.show(loaded?.first, resettingView: true)
-                if let first = loaded?.first, !self.hasSizedToFirstImage {
-                    self.hasSizedToFirstImage = true
-                    self.sizeWindow(to: first)
-                }
-                if let player = loaded?.player {
-                    player.onFrame = { [weak self] frame in self?.view.showFrame(frame) }
-                    self.player = player
-                    player.start()
-                }
+        // The task runs on the main actor, so `self` is never handed to another thread —
+        // only the url and the size limit cross over, and the decoded image comes back.
+        let maxPixelSize = Self.maxPixelSize
+        Task { [weak self] in
+            let loaded = await ImageLoader.loaded(url, maxPixelSize: maxPixelSize)
+            guard let self, token == loadToken else { return }
+
+            view.show(loaded?.first, resettingView: true)
+            if let first = loaded?.first, !hasSizedToFirstImage {
+                hasSizedToFirstImage = true
+                sizeWindow(to: first)
+            }
+            if let player = loaded?.player {
+                player.onFrame = { [weak self] frame in self?.view.showFrame(frame) }
+                self.player = player
+                player.start()
             }
         }
     }
@@ -103,10 +106,10 @@ final class Viewer: NSObject, NSWindowDelegate {
     /// The window is fitted to the image once, on launch, and then left alone — qView's own
     /// default. Its bounds are qView's too: never below a fifth of the screen, never above
     /// seven tenths of it.
-    static let minScreenFraction: CGFloat = 0.20
-    static let maxScreenFraction: CGFloat = 0.70
+    nonisolated static let minScreenFraction: CGFloat = 0.20
+    nonisolated static let maxScreenFraction: CGFloat = 0.70
 
-    static func windowSize(imagePixelSize: CGSize, screenSize: CGSize) -> CGSize {
+    nonisolated static func windowSize(imagePixelSize: CGSize, screenSize: CGSize) -> CGSize {
         guard imagePixelSize.width > 0, imagePixelSize.height > 0 else { return screenSize }
         let ceiling = CGSize(width: screenSize.width * maxScreenFraction,
                              height: screenSize.height * maxScreenFraction)

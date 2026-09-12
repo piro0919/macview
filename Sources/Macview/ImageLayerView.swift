@@ -1,6 +1,7 @@
 import AppKit
 
 /// The whole window is this view. Nothing is drawn except the image and the ground it sits on.
+@MainActor
 final class ImageLayerView: NSView {
     /// Dark, and fixed: an image is judged against a neutral ground, not against the system theme.
     /// #212121, the same ground qView settles on.
