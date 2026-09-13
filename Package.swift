@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 import PackageDescription
 
 // Sparkle is linked from Vendor/, which scripts/build.sh fetches. The path is relative to the
@@ -10,7 +10,7 @@ let package = Package(
         .executableTarget(
             name: "Macview",
             path: "Sources/Macview",
-            swiftSettings: [.unsafeFlags(["-F", "Vendor"])],
+            swiftSettings: [.unsafeFlags(["-F", "Vendor"]), .swiftLanguageMode(.v6)],
             linkerSettings: [
                 .unsafeFlags([
                     "-F", "Vendor",

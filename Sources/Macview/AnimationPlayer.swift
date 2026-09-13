@@ -4,63 +4,78 @@ import AppKit
 ///
 /// Frames are decoded one at a time on a background queue rather than unpacked into memory up
 /// front — a long animation would otherwise cost hundreds of megabytes to sit still.
+@MainActor
 final class AnimationPlayer {
-    private let source: CGImageSource
+    private let url: URL
     private let delays: [TimeInterval]
     private let maxPixelSize: Int
-    private let queue = DispatchQueue(label: "io.kkweb.macview.animation", qos: .userInitiated)
 
-    private var index = 0
-    private var generation = 0
+    /// The clock. Cancelling it is how playback stops — there is no other state to unwind.
+    private var clock: Task<Void, Never>?
 
     var onFrame: ((CGImage) -> Void)?
 
-    var frameCount: Int { delays.count }
-    var frameDelays: [TimeInterval] { delays }
+    nonisolated var frameCount: Int { delays.count }
+    nonisolated var frameDelays: [TimeInterval] { delays }
 
     /// Nil when the file holds a single frame; a still image needs no clock.
-    init?(source: CGImageSource, maxPixelSize: Int) {
+    /// The source is read for its frame delays and then let go: the clock opens its own,
+    /// so that one image source is never touched from two threads.
+    nonisolated init?(url: URL, source: CGImageSource, maxPixelSize: Int) {
         let count = CGImageSourceGetCount(source)
         guard count > 1 else { return nil }
-        self.source = source
+        self.url = url
         self.maxPixelSize = maxPixelSize
         self.delays = (0..<count).map { Self.delay(of: source, at: $0) }
     }
 
+    deinit { clock?.cancel() }
+
     func start() {
-        generation += 1
-        index = 1 % max(frameCount, 1)
-        schedule(after: delays.first ?? 0.1, generation: generation)
-    }
-
-    func stop() {
-        generation += 1
-    }
-
-    private func schedule(after delay: TimeInterval, generation: Int) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            guard let self, generation == self.generation else { return }
-            self.advance(generation: generation)
+        stop()
+        let url = url
+        let delays = delays
+        let maxPixelSize = maxPixelSize
+        clock = Task { [weak self] in
+            await Self.play(url: url, delays: delays, maxPixelSize: maxPixelSize) { frame in
+                self?.onFrame?(frame)
+            }
         }
     }
 
-    private func advance(generation: Int) {
-        let frameIndex = index
-        queue.async { [weak self] in
-            guard let self else { return }
-            let image = ImageLoader.frame(of: self.source, at: frameIndex, maxPixelSize: self.maxPixelSize)
-            DispatchQueue.main.async {
-                guard generation == self.generation else { return }
-                if let image { self.onFrame?(image) }
-                self.index = (frameIndex + 1) % self.frameCount
-                self.schedule(after: self.delays[frameIndex], generation: generation)
-            }
+    func stop() {
+        clock?.cancel()
+        clock = nil
+    }
+
+    /// Runs off the main thread and owns everything it touches: its own image source,
+    /// its own index. Only finished frames cross back.
+    @concurrent
+    private static func play(
+        url: URL, delays: [TimeInterval], maxPixelSize: Int,
+        show: @escaping @Sendable @MainActor (CGImage) -> Void
+    ) async {
+        let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary)
+        else { return }
+
+        let count = delays.count
+        // Frame n is shown, then frame n's own delay is waited out before the next one.
+        var next = 1 % count
+        while !Task.isCancelled {
+            let wait = delays[(next + count - 1) % count]
+            guard (try? await Task.sleep(for: .seconds(wait))) != nil else { return }
+
+            guard let image = ImageLoader.frame(of: source, at: next, maxPixelSize: maxPixelSize)
+            else { return }
+            await show(image)
+            next = (next + 1) % count
         }
     }
 
     /// GIF, APNG, animated WebP and HEICS each keep their frame delay in their own dictionary.
     /// A delay too small to honour is treated as a tenth of a second, the way browsers do.
-    static func delay(of source: CGImageSource, at index: Int) -> TimeInterval {
+    nonisolated static func delay(of source: CGImageSource, at index: Int) -> TimeInterval {
         let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
         let containers: [(CFString, CFString, CFString)] = [
             (kCGImagePropertyGIFDictionary, kCGImagePropertyGIFUnclampedDelayTime, kCGImagePropertyGIFDelayTime),
