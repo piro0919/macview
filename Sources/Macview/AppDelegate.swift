@@ -5,10 +5,6 @@ import UniformTypeIdentifiers
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var viewer: Viewer?
 
-    /// main.swift is top-level code, which is nonisolated in the Swift 5 language mode.
-    /// Making the object costs nothing isolated; AppKit calls every delegate method on the main thread.
-    nonisolated override init() { super.init() }
-
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.make()
     }
@@ -48,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum MainMenu {
+    @MainActor
     static func make() -> NSMenu {
         let main = NSMenu()
 

@@ -32,7 +32,8 @@ enum ImageLoader {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary),
               let first = frame(of: source, at: 0, maxPixelSize: maxPixelSize)
         else { return nil }
-        return Loaded(first: first, player: AnimationPlayer(source: source, maxPixelSize: maxPixelSize))
+        let player = AnimationPlayer(url: url, source: source, maxPixelSize: maxPixelSize)
+        return Loaded(first: first, player: player)
     }
 
     /// Decoded at most `maxPixelSize` on the long edge, with the EXIF orientation already applied.
