@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Macview — a light macOS image viewer that shows the picture and nothing else",
-    "description": "Open a picture and the picture is all you get. No buttons, no browser, just the arrow keys to move through the folder. A free and open source image viewer for macOS."
+    "title": "Macview — a light qView alternative for macOS",
+    "description": "A qView-style image viewer for macOS: open a picture and the picture is all you get. No buttons, no browser, just the arrow keys to move through the folder. Free and open source."
   },
   "hero": {
     "title": "Open a picture, and that is all you see",
