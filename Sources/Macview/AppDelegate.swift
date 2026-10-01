@@ -50,13 +50,15 @@ enum MainMenu {
 
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About Macview",
-                        action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
-                        keyEquivalent: "")
+        appMenu.addItem(
+            withTitle: "About Macview",
+            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+            keyEquivalent: "")
         appMenu.addItem(.separator())
-        let update = appMenu.addItem(withTitle: "Check for Updates…",
-                                     action: #selector(Updater.checkForUpdates(_:)),
-                                     keyEquivalent: "")
+        let update = appMenu.addItem(
+            withTitle: "Check for Updates…",
+            action: #selector(Updater.checkForUpdates(_:)),
+            keyEquivalent: "")
         update.target = Updater.shared
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Hide Macview", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")

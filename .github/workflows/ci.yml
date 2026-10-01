@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Builds the .app the way a release does and runs its --selftest. The self test opens no
+  # window and touches no network or settings, so it runs on the runner. build.sh signs
+  # ad hoc, so no certificate is needed here.
+  app:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      # build.sh fetches Sparkle into Vendor/ when it is missing. Kept between runs.
+      - uses: actions/cache@v4
+        with:
+          path: Vendor
+          key: ${{ runner.os }}-vendor-${{ hashFiles('scripts/build.sh') }}
+      # The rules are in .swift-format: the defaults, with a 4-space indent and 120 columns.
+      - run: swift format lint --strict -r Sources
+      - run: ./scripts/build.sh
+      - run: ./dist/Macview.app/Contents/MacOS/Macview --selftest
+
+  # The landing page. Vercel builds it too; this catches a broken build before it gets there.
+  lp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter macview-lp lint
+      - run: pnpm --filter macview-lp typecheck
+      - run: pnpm lp:build

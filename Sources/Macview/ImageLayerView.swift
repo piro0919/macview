@@ -65,7 +65,8 @@ final class ImageLayerView: NSView {
         imageLayer.contents = image
 
         let pixels = CGSize(width: image.width, height: image.height)
-        let scale = transform.scale
+        let scale =
+            transform.scale
             ?? Layout.fitScale(pixelSize: pixels, quarterTurns: transform.quarterTurns, in: bounds.size)
         let unturned = CGSize(width: pixels.width * scale, height: pixels.height * scale)
         let displayed = Layout.turnedSize(unturned, quarterTurns: transform.quarterTurns)
@@ -221,7 +222,8 @@ final class ImageLayerView: NSView {
     override func scrollWheel(with event: NSEvent) {
         let delta = event.scrollingDeltaY
         guard delta != 0 else { return }
-        let factor = event.hasPreciseScrollingDeltas
+        let factor =
+            event.hasPreciseScrollingDeltas
             ? pow(ViewTransform.step, delta / 60)
             : (delta > 0 ? ViewTransform.step : 1 / ViewTransform.step)
         zoom(by: factor, at: convert(event.locationInWindow, from: nil))

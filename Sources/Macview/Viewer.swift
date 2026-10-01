@@ -13,7 +13,8 @@ final class Viewer: NSObject, NSWindowDelegate {
 
     /// Nothing is ever shown larger than the screen can resolve, so nothing larger is decoded.
     private static let maxPixelSize: Int = {
-        let longest = NSScreen.screens
+        let longest =
+            NSScreen.screens
             .map { max($0.frame.width, $0.frame.height) * $0.backingScaleFactor }
             .max() ?? 2048
         return max(Int(longest.rounded()), 4096)
@@ -111,10 +112,12 @@ final class Viewer: NSObject, NSWindowDelegate {
 
     nonisolated static func windowSize(imagePixelSize: CGSize, screenSize: CGSize) -> CGSize {
         guard imagePixelSize.width > 0, imagePixelSize.height > 0 else { return screenSize }
-        let ceiling = CGSize(width: screenSize.width * maxScreenFraction,
-                             height: screenSize.height * maxScreenFraction)
-        let floor = CGSize(width: screenSize.width * minScreenFraction,
-                           height: screenSize.height * minScreenFraction)
+        let ceiling = CGSize(
+            width: screenSize.width * maxScreenFraction,
+            height: screenSize.height * maxScreenFraction)
+        let floor = CGSize(
+            width: screenSize.width * minScreenFraction,
+            height: screenSize.height * minScreenFraction)
         let ratio = min(ceiling.width / imagePixelSize.width, ceiling.height / imagePixelSize.height, 1)
         return CGSize(
             width: max(imagePixelSize.width * ratio, floor.width).rounded(),

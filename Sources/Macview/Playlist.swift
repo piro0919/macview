@@ -30,12 +30,14 @@ struct Playlist {
     }
 
     static func imageFiles(in directory: URL) -> [URL] {
-        let contents = (try? FileManager.default.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
-        )) ?? []
-        return contents
+        let contents =
+            (try? FileManager.default.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+            )) ?? []
+        return
+            contents
             .filter { !$0.hasDirectoryPath && ImageLoader.canOpen($0) }
             .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
     }

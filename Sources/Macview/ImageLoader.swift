@@ -30,7 +30,7 @@ enum ImageLoader {
     static func load(_ url: URL, maxPixelSize: Int) -> Loaded? {
         let sourceOptions: [CFString: Any] = [kCGImageSourceShouldCache: false]
         guard let source = CGImageSourceCreateWithURL(url as CFURL, sourceOptions as CFDictionary),
-              let first = frame(of: source, at: 0, maxPixelSize: maxPixelSize)
+            let first = frame(of: source, at: 0, maxPixelSize: maxPixelSize)
         else { return nil }
         let player = AnimationPlayer(url: url, source: source, maxPixelSize: maxPixelSize)
         return Loaded(first: first, player: player)
