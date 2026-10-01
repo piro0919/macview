@@ -81,12 +81,16 @@ final class Viewer: NSObject, NSWindowDelegate {
             let loaded = await ImageLoader.loaded(url, maxPixelSize: maxPixelSize)
             guard let self, token == loadToken else { return }
 
-            view.show(loaded?.first, resettingView: true)
-            if let first = loaded?.first, !hasSizedToFirstImage {
-                hasSizedToFirstImage = true
-                sizeWindow(to: first)
+            guard let loaded else {
+                view.showUnreadable(fileName: url.lastPathComponent)
+                return
             }
-            if let player = loaded?.player {
+            view.show(loaded.first, resettingView: true)
+            if !hasSizedToFirstImage {
+                hasSizedToFirstImage = true
+                sizeWindow(to: loaded.first)
+            }
+            if let player = loaded.player {
                 player.onFrame = { [weak self] frame in self?.view.showFrame(frame) }
                 self.player = player
                 player.start()

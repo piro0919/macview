@@ -11,6 +11,7 @@ final class ImageLayerView: NSView {
     var onOpen: (([URL]) -> Void)?
 
     private let imageLayer = CALayer()
+    private let notice = Notice()
     private var image: CGImage?
     private var transform = ViewTransform()
     private var dragOrigin: CGPoint?
@@ -25,6 +26,16 @@ final class ImageLayerView: NSView {
         imageLayer.minificationFilter = .trilinear
         layer?.addSublayer(imageLayer)
         registerForDraggedTypes([.fileURL])
+
+        notice.isHidden = true
+        notice.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(notice)
+        NSLayoutConstraint.activate([
+            notice.centerXAnchor.constraint(equalTo: centerXAnchor),
+            notice.centerYAnchor.constraint(equalTo: centerYAnchor),
+            notice.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 24),
+            notice.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -24),
+        ])
     }
 
     @available(*, unavailable)
@@ -39,8 +50,21 @@ final class ImageLayerView: NSView {
     /// next photograph lying on its side for no reason the reader can see.
     func show(_ image: CGImage?, resettingView resets: Bool) {
         self.image = image
+        notice.isHidden = true
         if resets { transform = ViewTransform() }
         applyLayout()
+    }
+
+    /// A file that looked like an image but could not be decoded. Left blank, the window would
+    /// look as if it were still loading, so it says so and names the file.
+    func showUnreadable(fileName: String) {
+        show(nil, resettingView: true)
+        notice.stringValue = Self.unreadableMessage(fileName: fileName)
+        notice.isHidden = false
+    }
+
+    nonisolated static func unreadableMessage(fileName: String) -> String {
+        "Can't open this image\n\(fileName)"
     }
 
     /// The same picture, one frame on. The view is left exactly as it was.
@@ -284,4 +308,27 @@ final class ImageLayerView: NSView {
         let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: options) as? [URL] ?? []
         return urls.filter { $0.hasDirectoryPath || ImageLoader.canOpen($0) }
     }
+}
+
+/// The message shown in place of a picture that could not be read. It lets every click and
+/// drag through to the view beneath, so the ground still moves the window.
+private final class Notice: NSTextField {
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        isEditable = false
+        isSelectable = false
+        isBezeled = false
+        drawsBackground = false
+        alignment = .center
+        font = .systemFont(ofSize: 13)
+        textColor = NSColor(white: 1, alpha: 0.6)
+        lineBreakMode = .byTruncatingMiddle
+        maximumNumberOfLines = 2
+        cell?.wraps = true
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }

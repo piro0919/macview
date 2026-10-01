@@ -111,6 +111,16 @@ enum SelfTest {
             expect(false, "a test PNG could be written")
         }
 
+        // A file named like an image that does not decode: kept in the folder, refused by the
+        // decoder, and shown as a message naming it rather than as an empty window.
+        let broken = directory.appendingPathComponent("broken.png")
+        FileManager.default.createFile(atPath: broken.path, contents: Data("not an image".utf8))
+        expect(ImageLoader.canOpen(broken), "a broken file is still listed by its name")
+        expect(ImageLoader.load(broken, maxPixelSize: 100) == nil, "a broken file does not decode")
+        expect(
+            ImageLayerView.unreadableMessage(fileName: "broken.png").contains("broken.png"),
+            "the message for an unreadable file names it")
+
         // Animation: frames counted and their delays read, without unpacking them all.
         if let animated = writeTestGIF(
             to: directory.appendingPathComponent("moving.gif"),
