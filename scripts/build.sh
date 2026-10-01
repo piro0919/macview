@@ -8,6 +8,10 @@ cd "$root"
 
 app="$root/dist/Macview.app"
 sparkle_version="2.9.5"
+# Checks the fetched archive. Bump it together with the version; it is the digest GitHub lists
+# for the release asset:
+#   gh api repos/sparkle-project/Sparkle/releases/tags/<version> --jq '.assets[] | "\(.name) \(.digest)"'
+sparkle_sha256="015336b601493e05c237964954bff6191370003d94edefe663724c88840d73cc"
 
 # Sparkle carries the automatic updates. The framework is 3 MB, so it is fetched rather than
 # committed; Vendor/ is outside git. Its bin/ holds generate_appcast, which scripts/release.sh uses.
@@ -15,8 +19,16 @@ if [ ! -d "Vendor/Sparkle.framework" ]; then
   echo "fetching Sparkle ${sparkle_version}..."
   mkdir -p Vendor
   tmp="$(mktemp -d)"
-  curl -sL -o "$tmp/sparkle.tar.xz" \
+  curl -fsSL -o "$tmp/sparkle.tar.xz" \
     "https://github.com/sparkle-project/Sparkle/releases/download/${sparkle_version}/Sparkle-${sparkle_version}.tar.xz"
+  # Bundling an archive unchecked would ship whatever framework the download happened to hold.
+  if ! echo "${sparkle_sha256}  $tmp/sparkle.tar.xz" | shasum -a 256 -c - >/dev/null; then
+    echo "error: Sparkle ${sparkle_version} does not match its SHA-256." >&2
+    echo "       expected: ${sparkle_sha256}" >&2
+    echo "       actual:   $(shasum -a 256 "$tmp/sparkle.tar.xz" | cut -d' ' -f1)" >&2
+    rm -rf "$tmp"
+    exit 1
+  fi
   tar xf "$tmp/sparkle.tar.xz" -C "$tmp"
   cp -R "$tmp/Sparkle.framework" Vendor/
   cp -R "$tmp/bin" Vendor/
