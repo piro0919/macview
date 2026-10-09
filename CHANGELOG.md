@@ -6,7 +6,12 @@ releasing, rename `Unreleased` to `[x.y.z] - YYYY-MM-DD` and commit.
 
 Versions up to 0.3.3 predate this file; their history is in `git log`.
 
-## [Unreleased]
+## [0.3.4] - 2026-10-09
+
+### Changed
+
+- The update window now follows the Mac's language, so it appears in Japanese on a Japanese
+  Mac. It was always in English before.
 
 ### Fixed
 
